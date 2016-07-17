@@ -42,7 +42,6 @@ require([
 		    animation:'translate'
 	    });
 	    cloud.placeAt('container');
-	    cloud.startup();
     }
 ); 
 

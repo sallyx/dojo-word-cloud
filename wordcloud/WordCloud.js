@@ -36,7 +36,7 @@ define([
 			}, this);
 			var interval = (maxCount  - minCount)/this.levels;
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
-				var c = container.word['count']/interval;
+				var c = container.word[this.storeCountKey]/interval;
 				c = Math.round(c);
 				var sizeClass = 'wc_l'+this.levels+'_'+c;
 				domClass.add(container.element, sizeClass);
@@ -90,8 +90,8 @@ define([
 		_normalizexy: function(toppx,leftpx,w,h,firstGeo, element) {
 			var geo = domGeometry.getContentBox(element);
 
-			var top = (w-geo.w)/2+toppx;
-			var left = (h-firstGeo.h-geo.h)/2+leftpx;
+			var top  = (h-firstGeo.h-geo.h)/2+leftpx;
+			var left = (w-geo.w)/2+toppx;
 			if(top < 0) top = 0;
 			if(left < 0) left = 0;
 			if(top+geo.h > h) top = h - geo.h;
