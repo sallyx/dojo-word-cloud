@@ -39,9 +39,11 @@ require([
 	    var store = new Memory({data:words});
 	    var cloud = new Cloud({
 		    store:store,
-		    animation:'translate'
+		    animation:'translate',
+		    height:300
 	    });
 	    cloud.placeAt('container');
+	    cloud.startup();
     }
 ); 
 
