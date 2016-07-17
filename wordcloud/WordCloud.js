@@ -36,7 +36,7 @@ define([
 			}, this);
 			var interval = (maxCount  - minCount)/this.levels;
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
-				var c = container.word[this.storeCountKey]/interval;
+				var c = interval ? container.word[this.storeCountKey]/interval : 5;
 				c = Math.round(c);
 				var sizeClass = 'wc_l'+this.levels+'_'+c;
 				domClass.add(container.element, sizeClass);
