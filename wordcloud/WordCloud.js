@@ -51,7 +51,10 @@ define([
 			deltay = dim.h/circles/2;
 
 			var firstGeo;
-			arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
+			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
+				if((this._elements.length - ix) < Math.PI*2/alfa) {
+					alfa = Math.PI*2/(this._elements.length - ix);
+				}
 				if(!x) {
 					firstGeo = domGeometry.getContentBox(container.element);
 				}
@@ -61,15 +64,15 @@ define([
 					'left': p.left
 				};
 				alfa += radStep;
-				if(!x) x += deltax;
-				if(!y) y += deltay;
+				if(!x) x += deltax/2;
+				if(!y) y += deltay/2;
 				if(alfa >= Math.PI*2) {
 					x += deltax;
 					y += deltay;
 					alfa -= Math.PI*2;
 				}
-				toppx = Math.sin(alfa)* x;
-				leftpx = Math.cos(alfa)* y;
+				toppx = Math.cos(alfa)* x;
+				leftpx = Math.sin(alfa)* y;
 			}));
 	   		function _normalizexy(toppx, leftpx, w, h, geo) {
 				var top  = (h-geo.h)/2+leftpx;
