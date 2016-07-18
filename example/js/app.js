@@ -40,7 +40,10 @@ require([
 	    var cloud = new Cloud({
 		    store:store,
 		    animation:'translate',
-		    height:300
+		    height:300,
+		    positionFce:'advancedCircle',
+		    verticalChance: 0,
+		    shuffle: 0
 	    });
 	    cloud.placeAt('container');
 	    cloud.startup();

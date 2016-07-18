@@ -38,7 +38,13 @@ define([
     };
 
     var positionFunctions = {
-	    'simpleCircle': function(dim) {
+	    simpleCircle: function(dim) {
+		    positionFunctions._circle.call(this,dim, 0);
+	    },
+	    advancedCircle: function(dim) {
+		    positionFunctions._circle.call(this,dim, 1);
+	    },
+	    _circle: function(dim, colisionTest) {
 			var radStep = this.degStep/180.0*Math.PI;
 			var alfa = 0;
 			var deltax = deltay = x = y = 0;
@@ -47,8 +53,13 @@ define([
 
 			var count = this._elements.length;
 			var circles = Math.ceil(count*radStep/(Math.PI*2));
-			deltax = dim.w/circles/2;
-			deltay = dim.h/circles/2;
+			var tests = 3;
+			deltax = dim.w/circles;
+			deltay = dim.h/circles;
+			if(colisionTest) {
+				deltax /= tests*2;
+				deltay /= tests*2;
+			}
 
 			var firstGeo;
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
@@ -58,21 +69,25 @@ define([
 				if(!x) {
 					firstGeo = domGeometry.getContentBox(container.element);
 				}
-				var p = _normalizexy(toppx, leftpx, dim.w, dim.h, container.geo);
+				var p;
+				do {
+					p = _normalizexy(toppx, leftpx, dim.w, dim.h, container.geo);
+					alfa += radStep;
+					if(!x) x += deltax/2;
+					if(!y) y += deltay/2;
+					if(alfa >= Math.PI*2) {
+						x += deltax;
+						y += deltay;
+						alfa -= Math.PI*2;
+						if(!--tests) break;
+					}
+					toppx = Math.cos(alfa)* x;
+					leftpx = Math.sin(alfa)* y;
+				} while(colisionTest && _colision.call(this,p, container.geo));
 				container.properties =  {
 					'top': p.top,
 					'left': p.left
 				};
-				alfa += radStep;
-				if(!x) x += deltax/2;
-				if(!y) y += deltay/2;
-				if(alfa >= Math.PI*2) {
-					x += deltax;
-					y += deltay;
-					alfa -= Math.PI*2;
-				}
-				toppx = Math.cos(alfa)* x;
-				leftpx = Math.sin(alfa)* y;
 			}));
 	   		function _normalizexy(toppx, leftpx, w, h, geo) {
 				var top  = (h-geo.h)/2+leftpx;
@@ -82,6 +97,27 @@ define([
 				if(top+geo.h > h) top = h - geo.h;
 				if(left+geo.w > w) left = w - geo.w;
 				return {top: top, left:left};
+			}
+
+			function _pointColision(cp,cgeo, point) {
+				if(point[0] < cp.top) return false;
+				if(point[0] > cp.top+cgeo.h) return false;
+				if(point[1] < cp.left) return false;
+				if(point[1] > cp.left+cgeo.w) return false;
+				return true;
+			}
+			function _colision(p, geo) {
+				var result = false;
+				arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
+					if(!container.properties) return;
+					var cp = container.properties;
+					var cgeo = container.geo;
+					if(_pointColision(cp,cgeo,[p.top,p.left])) { result = true; return; }
+					if(_pointColision(cp,cgeo,[p.top+geo.h,p.left])) { result = true; return; }
+					if(_pointColision(cp,cgeo,[p.top+geo.h,p.left+geo.w])) { result = true; return; }
+					if(_pointColision(cp,cgeo,[p.top,p.left+geo.w])) { result = true; return; }
+				}));
+				return result;
 			}
 	 },
     };
@@ -94,10 +130,12 @@ define([
 		wordClass: 'word',
 		animation: 'translate',
 		positionFce: 'simpleCircle',
+		shuffle: 1,
 		width: null,
 		height: null,
 		levels: 10,
-		degStep: 30,
+		degStep: 42,
+		verticalChance:0,
 		_elements : null,
 		_animationFunctions: animationFunctions,
 		_positionFunctions: positionFunctions,
@@ -124,12 +162,16 @@ define([
 				c = Math.round(c);
 				var sizeClass = 'wc_l'+this.levels+'_'+c;
 				domClass.add(container.element, sizeClass);
+				if(Math.random() < this.verticalChance) domClass.add(container.element, 'vertical-text');
 			}));
 			this.shuffleWords();
 		},
 		shuffleWords: function() {
-			//this._elements.reverse();
-			shuffle(this._elements);
+			if(this.shuffle) {
+				shuffle(this._elements);
+			} else {
+				this._elements.reverse();
+			}
 		},
 		postCreate: function() {
 			this.own(on(window,'resize',lang.hitch(this,function() {

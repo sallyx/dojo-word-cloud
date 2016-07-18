@@ -5,7 +5,12 @@
 	overflow:visible;
 }
 
-.word {
+.WordCloud .vertical-text {
+	transform: rotate(-90deg);
+	transform-origin: left top 0;
+}
+
+.WordCloud .word {
 	position:absolute;
 }
 
