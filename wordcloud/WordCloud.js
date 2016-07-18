@@ -1,9 +1,9 @@
 define([
     'dojo/_base/declare', 'dojo/_base/lang', 'dojo/_base/window',
     'dijit/_WidgetBase', 'dojo/dom', 'dojo/dom-construct', "dojo/dom-style", 'dojo/dom-class', 'dojo/dom-geometry',
-    'dojo/_base/array','dojo/_base/fx','dojo/on',
+    'dojo/_base/array','dojo/_base/fx','dojo/on/debounce',
     'dojo/domReady!'
-], function(declare, lang, win, _WidgetBase,dom, domConstruct, domStyle, domClass, domGeometry, arrayUtils,fx,on){
+], function(declare, lang, win, _WidgetBase,dom, domConstruct, domStyle, domClass, domGeometry, arrayUtils,fx,debounce){
     function shuffle(array) {
 	var currentIndex = array.length, temporaryValue, randomIndex;
 	while (0 !== currentIndex) {
@@ -46,6 +46,9 @@ define([
 	    advancedCircle: function(dim) {
 		    positionFunctions._circle.call(this,dim, 1);
 	    },
+	    denseCircle: function(dim) {
+		    positionFunctions._circle.call(this,dim, 2);
+	    },
 	    rows: function(dim) {
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
 				domClass.add(container.element, 'inrow');
@@ -54,21 +57,18 @@ define([
 			}));
 	    },
 	    _circle: function(dim, colisionTest) {
-			var radStep = this.degStep/180.0*Math.PI;
-			var alfa = 0;
+			var radStep = (45-colisionTest*10)/180.0*Math.PI;
+			var alfa = 0, alfaDelta = 0;
 			var deltax = deltay = x = y = 0;
 			var toppx = 0;
 			var leftpx = 0;
 
 			var count = this._elements.length;
-			var circles = Math.ceil(count*radStep/(Math.PI*2));
-			var tests = 3;
+			var circles = Math.ceil(count*0.5/(Math.PI*2));
 			deltax = dim.w/circles;
 			deltay = dim.h/circles;
-			if(colisionTest) {
-				deltax /= tests*2;
-				deltay /= tests*2;
-			}
+			deltax /= (colisionTest+1)*2;
+			deltay /= (colisionTest+1)*2;
 
 			var firstGeo;
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
@@ -79,25 +79,31 @@ define([
 					firstGeo = domGeometry.getContentBox(container.element);
 				}
 				var p;
-				tests = 3;
+				var tests = circles * 2;
 				do {
 					p = _normalizexy(toppx, leftpx, dim.w, dim.h, container.geo);
+					//domStyle.set(container.element, {top: p.top+'px',left:p.left+'px'});
 					alfa += radStep;
-					if(!x) x += deltax/2;
-					if(!y) y += deltay/2;
+					if(!x) x += deltax/(3-Math.max(1,colisionTest));
+					if(!y) y += deltay/(3-Math.max(1,colisionTest));
 					if(alfa >= Math.PI*2) {
 						x += deltax;
 						y += deltay;
 						alfa -= Math.PI*2;
-						if(!--tests) break;
+						if(!--tests) {
+							break;
+						}
 					}
-					toppx = Math.cos(alfa)* x;
-					leftpx = Math.sin(alfa)* y;
-				} while(colisionTest && _colision.call(this,p, container.geo));
+					toppx = Math.cos(alfa+alfaDelta)* x;
+					leftpx = Math.sin(alfa+alfaDelta)* y;
+				} while(colisionTest && (!colisionTest || _colision.call(this, p, container.geo)));
 				container.properties =  {
 					'top': p.top,
 					'left': p.left
 				};
+				if(colisionTest > 2) {
+					x = 0, y = 0, alfaDelta = alfa, alfa = 0;
+				}
 			}));
 	   		function _normalizexy(toppx, leftpx, w, h, geo) {
 				var top  = (h-geo.h)/2+leftpx;
@@ -109,23 +115,19 @@ define([
 				return {top: top, left:left};
 			}
 
-			function _pointColision(cp,cgeo, point) {
-				if(point[0] < cp.top) return false;
-				if(point[0] > cp.top+cgeo.h) return false;
-				if(point[1] < cp.left) return false;
-				if(point[1] > cp.left+cgeo.w) return false;
-				return true;
+			function _rectColision(p, geo, cp, cgeo) {
+				var overlap = cgeo.h/5;
+				var pl = p.left, pr = p.left + geo.w, pt = p.top, pb = p.top+geo.h,
+				cl = cp.left, cr = cp.left+cgeo.w, ct = cp.top+overlap, cb = cp.top+cgeo.h-overlap;
+				return pl < cr  && pr > cl && pt  < cb && pb > ct;
 			}
 			function _colision(p, geo) {
 				var result = false;
 				arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
-					if(!container.properties) return;
+					if(!container.properties || result) return;
 					var cp = container.properties;
 					var cgeo = container.geo;
-					if(_pointColision(cp,cgeo,[p.top,p.left])) { result = true; return; }
-					if(_pointColision(cp,cgeo,[p.top+geo.h,p.left])) { result = true; return; }
-					if(_pointColision(cp,cgeo,[p.top+geo.h,p.left+geo.w])) { result = true; return; }
-					if(_pointColision(cp,cgeo,[p.top,p.left+geo.w])) { result = true; return; }
+					if(_rectColision(p,geo, cp,cgeo)) result = true;
 				}));
 				return result;
 			}
@@ -144,7 +146,6 @@ define([
 		width: null,
 		height: null,
 		levels: 10,
-		degStep: 42,
 		verticalChance:0,
 		_elements : null,
 		_animationFunctions: animationFunctions,
@@ -186,7 +187,8 @@ define([
 			}
 		},
 		postCreate: function() {
-			this.own(on(window,'resize',lang.hitch(this,function() {
+			var dr = debounce('resize',500);
+			this.own(dr(window,lang.hitch(this,function() {
 				this.resize();
 			})));
 		},
@@ -199,6 +201,7 @@ define([
 		_computeGeometry: function() {
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
 				container.geo = domGeometry.getContentBox(container.element);
+				container.properties = null;
 			}));
 		},
 		resize: function() {

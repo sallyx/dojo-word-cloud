@@ -10,11 +10,11 @@
 	transform-origin: left top 0;
 }
 
-.WordCloud .word { position:absolute; }
+.WordCloud .word { position:absolute;}
 .WordCloud .word.inrow { position:relative; }
 
-.WordCloud .word.wc_l10_0 { font-size:30%; color:#111; }
-.WordCloud .word.wc_l10_1 { font-size:35%; color:#222;}
+.WordCloud .word.wc_l10_0 { font-size:30%; color:#666; }
+.WordCloud .word.wc_l10_1 { font-size:35%; color:#111;}
 .WordCloud .word.wc_l10_2 { font-size:40%; color:#3F3;}
 .WordCloud .word.wc_l10_3 { font-size:45%; color:#A44;}
 .WordCloud .word.wc_l10_4 { font-size:50%; color:#555;}
