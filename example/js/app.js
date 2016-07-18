@@ -47,6 +47,13 @@ require([
 	    });
 	    cloud.placeAt('container');
 	    cloud.startup();
+	    var cloud = new Cloud({
+		    store:store,
+		    animation:'none',
+		    positionFce:'rows'
+	    });
+	    cloud.placeAt('container2');
+	    cloud.startup();
     }
 ); 
 

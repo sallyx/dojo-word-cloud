@@ -10,9 +10,8 @@
 	transform-origin: left top 0;
 }
 
-.WordCloud .word {
-	position:absolute;
-}
+.WordCloud .word { position:absolute; }
+.WordCloud .word.inrow { position:relative; }
 
 .WordCloud .word.wc_l10_0 { font-size:30%; color:#111; }
 .WordCloud .word.wc_l10_1 { font-size:35%; color:#222;}

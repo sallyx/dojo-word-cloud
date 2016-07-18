@@ -1,9 +1,9 @@
 define([
-    'dojo/_base/declare', 'dojo/_base/lang',
+    'dojo/_base/declare', 'dojo/_base/lang', 'dojo/_base/window',
     'dijit/_WidgetBase', 'dojo/dom', 'dojo/dom-construct', "dojo/dom-style", 'dojo/dom-class', 'dojo/dom-geometry',
     'dojo/_base/array','dojo/_base/fx','dojo/on',
     'dojo/domReady!'
-], function(declare, lang, _WidgetBase,dom, domConstruct, domStyle, domClass, domGeometry, arrayUtils,fx,on){
+], function(declare, lang, win, _WidgetBase,dom, domConstruct, domStyle, domClass, domGeometry, arrayUtils,fx,on){
     function shuffle(array) {
 	var currentIndex = array.length, temporaryValue, randomIndex;
 	while (0 !== currentIndex) {
@@ -29,10 +29,12 @@ define([
 	},
 	'none' : function(dim){
 		arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
-			domStyle.set(container.element, {
-				top:container.properties.top+'px',
-				left:container.properties.left+'px'
-			});
+			if(container.properties && container.properties.top && container.properties.left) {
+				domStyle.set(container.element, {
+					top:container.properties.top+'px',
+					left:container.properties.left+'px'
+				});
+			}
 		}));
 	}
     };
@@ -43,6 +45,13 @@ define([
 	    },
 	    advancedCircle: function(dim) {
 		    positionFunctions._circle.call(this,dim, 1);
+	    },
+	    rows: function(dim) {
+			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
+				domClass.add(container.element, 'inrow');
+				domConstruct.place(container.element,this.domNode);
+				domConstruct.place(win.doc.createTextNode(' '),container.element,'after');
+			}));
 	    },
 	    _circle: function(dim, colisionTest) {
 			var radStep = this.degStep/180.0*Math.PI;
@@ -70,6 +79,7 @@ define([
 					firstGeo = domGeometry.getContentBox(container.element);
 				}
 				var p;
+				tests = 3;
 				do {
 					p = _normalizexy(toppx, leftpx, dim.w, dim.h, container.geo);
 					alfa += radStep;
@@ -142,6 +152,8 @@ define([
 		constructor: function (args) {
 			lang.mixin(this, args);
 			this._elements = [];
+			if(this.height === null && this.positionFce === 'rows')
+				this.height = 'auto';
 		},
 
 		buildRendering: function(){
