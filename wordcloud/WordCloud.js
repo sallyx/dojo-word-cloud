@@ -19,12 +19,14 @@ define([
     var animationFunctions = {
 	'translate': function(dim) {
 		arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
-			domStyle.set(container.element, {top:dim.h/2+'px',left:dim.w/2+'px'});
-			fx.animateProperty({
-				node:container.element,
-				properties: container.properties,
-				duration:1000
-			}).play();
+			if(container.properties && container.properties.top && container.properties.left) {
+				domStyle.set(container.element, {top:dim.h/2+'px',left:dim.w/2+'px'});
+				fx.animateProperty({
+					node:container.element,
+					properties: container.properties,
+					duration:1000
+				}).play();
+			}
 		}));
 	},
 	'none' : function(dim){
@@ -41,13 +43,16 @@ define([
 
     var positionFunctions = {
 	    simpleCircle: function(dim) {
-		    positionFunctions._circle.call(this,dim, 0);
+		    var args = {degStep:52, deltaDivide:1, firstDeltaStep:2,colisionTest:false,colisionTestRepeatCircle:false,overlapSize:0};
+		    positionFunctions._circle.call(this,dim, 0, args);
 	    },
 	    advancedCircle: function(dim) {
-		    positionFunctions._circle.call(this,dim, 1);
+		    var args = {degStep:35,deltaDivide:2,firstDeltaStep:2,colisionTest:true,colisionTestRepeatCircle:false,overlapSize:1/5};
+		    positionFunctions._circle.call(this,dim, 1, args);
 	    },
 	    denseCircle: function(dim) {
-		    positionFunctions._circle.call(this,dim, 2);
+		    var args = {degStep:25, deltaDivide:3,firstDeltaStep:3,colisionTest:true,colisionTestRepeatCircle:false,overlapSize:1/5};
+		    positionFunctions._circle.call(this,dim, 2, args);
 	    },
 	    rows: function(dim) {
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
@@ -56,19 +61,19 @@ define([
 				domConstruct.place(win.doc.createTextNode(' '),container.element,'after');
 			}));
 	    },
-	    _circle: function(dim, colisionTest) {
-			var radStep = (45-colisionTest*10)/180.0*Math.PI;
+	    _circle: function(dim, colisionTest, args) {
+			var radStep = args.degStep/180.0*Math.PI;
 			var alfa = 0, alfaDelta = 0;
 			var deltax = deltay = x = y = 0;
 			var toppx = 0;
 			var leftpx = 0;
 
 			var count = this._elements.length;
-			var circles = Math.ceil(count*0.5/(Math.PI*2));
+			var circles = Math.ceil(count*radStep/(Math.PI*2));
 			deltax = dim.w/circles;
 			deltay = dim.h/circles;
-			deltax /= (colisionTest+1)*2;
-			deltay /= (colisionTest+1)*2;
+			deltax /= args.deltaDivide*2;
+			deltay /= args.deltaDivide*2;
 
 			var firstGeo;
 			arrayUtils.forEach(this._elements, lang.hitch(this, function(container, ix) {
@@ -84,8 +89,8 @@ define([
 					p = _normalizexy(toppx, leftpx, dim.w, dim.h, container.geo);
 					//domStyle.set(container.element, {top: p.top+'px',left:p.left+'px'});
 					alfa += radStep;
-					if(!x) x += deltax/(3-Math.max(1,colisionTest));
-					if(!y) y += deltay/(3-Math.max(1,colisionTest));
+					if(!x) x += deltax/args.firstDeltaStep;
+					if(!y) y += deltay/args.firstDeltaStep;
 					if(alfa >= Math.PI*2) {
 						x += deltax;
 						y += deltay;
@@ -96,12 +101,12 @@ define([
 					}
 					toppx = Math.cos(alfa+alfaDelta)* x;
 					leftpx = Math.sin(alfa+alfaDelta)* y;
-				} while(colisionTest && (!colisionTest || _colision.call(this, p, container.geo)));
+				} while(args.colisionTest && (!args.colisionTest || _colision.call(this, p, container.geo)));
 				container.properties =  {
 					'top': p.top,
 					'left': p.left
 				};
-				if(colisionTest > 2) {
+				if(args.colisionTestRepeatCircle) {
 					x = 0, y = 0, alfaDelta = alfa, alfa = 0;
 				}
 			}));
@@ -116,7 +121,7 @@ define([
 			}
 
 			function _rectColision(p, geo, cp, cgeo) {
-				var overlap = cgeo.h/5;
+				var overlap = cgeo.h*args.overlapSize;
 				var pl = p.left, pr = p.left + geo.w, pt = p.top, pb = p.top+geo.h,
 				cl = cp.left, cr = cp.left+cgeo.w, ct = cp.top+overlap, cb = cp.top+cgeo.h-overlap;
 				return pl < cr  && pr > cl && pt  < cb && pb > ct;

@@ -52,7 +52,7 @@ require([
 	    var cloud = new Cloud({ store:store, animation:'translate', height:300, positionFce:'denseCircle', verticalChance: 0, shuffle: 0 });
 	    cloud.placeAt('denseCircle');
 	    cloud.startup();
-	    var cloud = new Cloud({ store:store, animation:'none', positionFce:'rows' });
+	    var cloud = new Cloud({ store:store, positionFce:'rows' });
 	    cloud.placeAt('rows');
 	    cloud.startup();
     }
