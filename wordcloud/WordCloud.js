@@ -51,7 +51,7 @@ define([
 		    positionFunctions._circle.call(this,dim, 1, args);
 	    },
 	    denseCircle: function(dim) {
-		    var args = {degStep:25, deltaDivide:3,firstDeltaStep:3,colisionTest:true,colisionTestRepeatCircle:false,overlapSize:1/5};
+		    var args = {degStep:25, deltaDivide:4,firstDeltaStep:3,colisionTest:true,colisionTestRepeatCircle:false,overlapSize:1/5};
 		    positionFunctions._circle.call(this,dim, 2, args);
 	    },
 	    rows: function(dim) {
@@ -101,7 +101,8 @@ define([
 					}
 					toppx = Math.cos(alfa+alfaDelta)* x;
 					leftpx = Math.sin(alfa+alfaDelta)* y;
-				} while(args.colisionTest && (!args.colisionTest || _colision.call(this, p, container.geo)));
+					var v = domClass.contains(container.element, 'vertical-text');
+				} while(args.colisionTest && _colision.call(this, p, container.geo, v));
 				container.properties =  {
 					'top': p.top,
 					'left': p.left
@@ -120,19 +121,24 @@ define([
 				return {top: top, left:left};
 			}
 
-			function _rectColision(p, geo, cp, cgeo) {
+			function _rectColision(p, geo, v, cp, cgeo, cv) {
 				var overlap = cgeo.h*args.overlapSize;
 				var pl = p.left, pr = p.left + geo.w, pt = p.top, pb = p.top+geo.h,
 				cl = cp.left, cr = cp.left+cgeo.w, ct = cp.top+overlap, cb = cp.top+cgeo.h-overlap;
+				if(v) { pr = pl + geo.h; pt = p.top-geo.w; pb = p.top; }
+				if(cv) { cr = cl + cgeo.h; ct = cp.top-cgeo.w; cb = cp.top; }
 				return pl < cr  && pr > cl && pt  < cb && pb > ct;
 			}
-			function _colision(p, geo) {
+			function _colision(p, geo, v) {
 				var result = false;
 				arrayUtils.forEach(this._elements, lang.hitch(this, function(container) {
 					if(!container.properties || result) return;
 					var cp = container.properties;
 					var cgeo = container.geo;
-					if(_rectColision(p,geo, cp,cgeo)) result = true;
+					var cv = domClass.contains(container.element, 'vertical-text');
+					if(_rectColision(p, geo, v, cp, cgeo, cv))  {
+						result = true;
+					}
 				}));
 				return result;
 			}
@@ -180,7 +186,9 @@ define([
 				c = Math.round(c);
 				var sizeClass = 'wc_l'+this.levels+'_'+c;
 				domClass.add(container.element, sizeClass);
-				if(Math.random() < this.verticalChance) domClass.add(container.element, 'vertical-text');
+				if(Math.random() < this.verticalChance) {
+					 domClass.add(container.element, 'vertical-text');
+				}
 			}));
 			this.shuffleWords();
 		},
@@ -192,7 +200,7 @@ define([
 			}
 		},
 		postCreate: function() {
-			var dr = debounce('resize',500);
+			var dr = debounce('resize', 500);
 			this.own(dr(window,lang.hitch(this,function() {
 				this.resize();
 			})));
@@ -212,8 +220,8 @@ define([
 		resize: function() {
 			this._computeGeometry();
 			var dim = this.computeDimension();
-			this._computePosition(dim);
 			domStyle.set(this.domNode, {height:dim.h+'px'});
+			this._computePosition(dim);
 			this._animatePosition(dim);
 		},
 		_animatePosition: function(dim) {
