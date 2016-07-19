@@ -95,4 +95,4 @@ Slowest but nicest cloud.
 
 To change look, have a look at simple [wordcloud/css/wordcloud.css](wordcloud/css/wordcloud.css).
 
-For rows cloud, you need to set appropriate size of the font.
+For rows cloud, you need to set appropriate font-size and line-height.
