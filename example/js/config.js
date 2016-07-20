@@ -1,6 +1,6 @@
 var dojoConfig = {
     async: true,
-	    baseUrl: "./js/",
+    baseUrl: "./js/",
     selectorEngine: "lite",
     tlmSiblingOfDojo: false,
     isDebug: true,

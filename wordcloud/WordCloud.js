@@ -158,6 +158,82 @@ define([
 		return result;
 	    }
 	},
+	brick: function(dim) {
+	    var maxh = dim.h;
+	    if(this.height == null) {
+		maxh = 1000000;
+	    }
+	    
+	    var rows = {};
+	    var rowix = 0;
+	    var maxrowix = 1;
+	    var mintop = maxh,maxbottom = 0;
+	    arrayUtils.forEach(this._elements, lang.hitch(this, function (container) {
+		var elm = container.element;
+		var left = 0;
+		var top = 0;
+		if(!rows[rowix]) {
+			 rows[rowix] = {t:maxh/2,l:dim.w/2,w:0,h:0, c:0};
+		}
+		if(!rows[rowix-1]) {
+			 rows[rowix-1] = {t:maxh/2,l:dim.w/2,w:0,h:0, c:0};
+		}
+		if(!rows[rowix+1]) {
+			 rows[rowix+1] = {t:maxh/2,l:dim.w/2,w:0,h:0, c:0};
+		}
+
+		if(1) {
+			left = (dim.w-container.geo.w+6)/2;
+			top = (maxh-container.geo.h)/2;
+			if(rowix < 0) {
+				top = rows[rowix+1].t-container.geo.h;
+			} else if (rowix > 0) {
+				top = rows[rowix-1].t+rows[rowix-1].h;
+			}
+
+			if(rows[rowix].c > 0) {
+				left = rows[rowix].l+rows[rowix].w;
+			} else if(rows[rowix].c < 0) {
+				left = rows[rowix].l-container.geo.w-6;
+			}
+			rows[rowix].t = rowix <= 0 ? Math.min(rows[rowix].t, top) : Math.max(rows[rowix].t, top);
+			rows[rowix].l = Math.min(rows[rowix].l, left);
+			rows[rowix].h = Math.max(rows[rowix].h, container.geo.h);
+			rows[rowix].w += container.geo.w+6;
+			if(!rows[rowix].c) { rows[rowix].c = 1; }
+			else if(rows[rowix].c == 1) {
+				rows[rowix].c = -1;
+			}
+			else { 
+				rows[rowix].c = 1;
+				if(rowix > 0 && Math.abs(rowix) == maxrowix) {
+					maxrowix++;
+					rowix = 0;
+				}
+				else if(rowix < 0) {
+					 rowix*=-1;
+				}
+				else {
+					 rowix++;
+					 rowix*=-1;
+				}
+			}
+		}
+		//domStyle.set(container.element, {top: top+'px',left:left+'px'});
+		mintop = Math.min(mintop, top);
+		maxbottom = Math.max(maxbottom, top+container.geo.h);
+		container.properties = {
+		    'top': top,
+		    'left': left
+		};
+	    }));
+	    if(this.height == null) {
+		dim.h = maxbottom-mintop;
+		arrayUtils.forEach(this._elements, lang.hitch(this, function (container) {
+			container.properties.top +=  -maxh/2 + dim.h/2;
+		}));
+	    }
+	}
     };
 
     return declare([_WidgetBase], {
@@ -237,6 +313,7 @@ define([
 	    var dim = this.computeDimension();
 	    domStyle.set(this.domNode, {height: dim.h + 'px'});
 	    this._computePosition(dim);
+	    domStyle.set(this.domNode, {height: dim.h + 'px'});
 	    this._animatePosition(dim);
 	},
 	_animatePosition: function (dim) {
