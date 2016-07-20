@@ -1,30 +1,30 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <title>Word cloud test</title>
-    <link rel="stylesheet" href="./src/dijit/themes/claro/claro.css" media="screen" />
-    <link rel="stylesheet" href="../wordcloud/css/wordcloud.css" media="screen" />
-    <style type="text/css">
-	* {
-	  box-sizing: border-box;
-	}
-	.wcContainer {
+    <head>
+	<meta charset="utf-8">
+	<title>Word cloud test</title>
+	<link rel="stylesheet" href="./src/dijit/themes/claro/claro.css" media="screen" />
+	<link rel="stylesheet" href="../wordcloud/css/wordcloud.css" media="screen" />
+	<style type="text/css">
+	    * {
+		box-sizing: border-box;
+	    }
+	    .wcContainer {
 		width:50%;
 		padding:20px;
 		background-color:#eeeeee;
 		float:left;
 		margin-bottom:5px;
-	}
-	#simpleCircle, #advancedCircle, #denseCircle {
+	    }
+	    #simpleCircle, #advancedCircle, #denseCircle {
 		font-size:40px;
 		border:1px solid black;
 		height:auto;
 		font-weight:bold;
 		background-color:white;
 		overflow:hidden;
-	}
-	#rows {
+	    }
+	    #rows {
 		font-size:40px;
 		line-height:16px;
 		overflow:hidden;
@@ -33,21 +33,20 @@
 		height:auto;
 		font-weight:bold;
 		background-color:white;
-	}
-    </style>
-</head>
-<body class="claro">
-    <h1>Word cloud test</h1>
+	    }
+	</style>
+    </head>
+    <body class="claro">
+	<h1>Word cloud test</h1>
 
 
-    <div class="wcContainer"><div id="simpleCircle"></div></div>
-    <div class="wcContainer"><div id="advancedCircle"></div></div>
-    <div class="wcContainer"><div id="denseCircle"></div></div>
-    <div class="wcContainer"><div id="rows"></div></div>
+	<div class="wcContainer"><div id="simpleCircle"></div></div>
+	<div class="wcContainer"><div id="advancedCircle"></div></div>
+	<div class="wcContainer"><div id="denseCircle"></div></div>
+	<div class="wcContainer"><div id="rows"></div></div>
 
-
-    <script src="js/config.js"></script>
-    <script src="./src/dojo/dojo.js"></script>
-    <script src="js/app.js"></script>
-</body>
+	<script src="js/config.js"></script>
+	<script src="./src/dojo/dojo.js"></script>
+	<script src="js/app.js"></script>
+    </body>
 </html>

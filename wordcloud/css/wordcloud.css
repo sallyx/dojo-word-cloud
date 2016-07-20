@@ -1,13 +1,13 @@
 .WordCloud {
-	position:relative;
-	width:auto;
-	height:auto;
-	overflow:visible;
+    position:relative;
+    width:auto;
+    height:auto;
+    overflow:visible;
 }
 
 .WordCloud .vertical-text {
-	transform: rotate(-90deg);
-	transform-origin: left top 0;
+    transform: rotate(-90deg);
+    transform-origin: left top 0;
 }
 
 .WordCloud .word { position:absolute;}
